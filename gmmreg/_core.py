@@ -329,7 +329,7 @@ def run_ini(f_config):
     #_plotting.display2Dpointsets(after_tps,scene)
     return model,scene,after_tps
 
-def run_jt(f_config, model, scene, m_info, s_info):
+def run(f_config, model, scene, m_info, s_info):
 
     section_common = 'FILES'
     section_option = 'GMMREG_OPT'
@@ -348,7 +348,6 @@ def run_jt(f_config, model, scene, m_info, s_info):
     iters = [int(s) for s in option_str.split(' ')]
 
     normalize_flag = int(c.get(section_option,'normalize'))
-    #print normalize_flag
     if normalize_flag==1:
         [model, c_m, s_m] = normalize(model)
         [scene, c_s, s_s] = normalize(scene)
@@ -361,7 +360,37 @@ def run_jt(f_config, model, scene, m_info, s_info):
         after_tps = denormalize(after_tps,c_s,s_s)
     t2 = time.time()
     print "Elasped time is %s seconds"%(t2-t1)
-    #_plotting.displayABC(model,scene,after_tps)
-    #_plotting.display2Dpointsets(after_tps,scene)
     return model,scene,after_tps
 
+def run_tune(f_config, model, scene, m_info, s_info, param):
+
+    section_common = 'FILES'
+    section_option = 'GMMREG_OPT'
+
+    c = ConfigParser.ConfigParser()
+    c.read(f_config)
+    ctrl_pts = model
+
+    level = int(c.get(section_option,'level'))
+    option_str = c.get(section_option,'sigma')
+    scales = param
+    option_str = c.get(section_option,'lambda')
+    lambdas = [float(s) for s in option_str.split(' ')]
+
+    option_str = c.get(section_option,'max_function_evals')
+    iters = [int(s) for s in option_str.split(' ')]
+
+    normalize_flag = int(c.get(section_option,'normalize'))
+    if normalize_flag==1:
+        [model, c_m, s_m] = normalize(model)
+        [scene, c_s, s_s] = normalize(scene)
+        [ctrl_pts, c_c, s_c] = normalize(ctrl_pts)
+    t1 = time.time()
+    after_tps = run_multi_level(model,scene,ctrl_pts,m_info,s_info,level,scales,lambdas,iters)
+    if normalize_flag==1:
+        model = denormalize(model,c_m,s_m)
+        scene = denormalize(scene,c_s,s_s)
+        after_tps = denormalize(after_tps,c_s,s_s)
+    t2 = time.time()
+    print "Elasped time is %s seconds"%(t2-t1)
+    return model,scene,after_tps

@@ -27,8 +27,13 @@ def display2Dpointsets(A, B, ax = None):
         fig = plt.figure()
         ax = fig.add_subplot(111)
 
-    ax.plot(A[:,0],A[:,1],'yo',markersize=8,mew=1)
-    ax.plot(B[:,0],B[:,1],'b+',markersize=8,mew=1)
+    ax.plot(A[:,0],A[:,1],'yo',markersize=7,mew=1)
+    ax.plot(B[:,0],B[:,1],'b+',markersize=7,mew=1)
+
+    ax.set_xlim([50,450])
+    ax.set_ylim([100,400])
+    #ax.gca().set_aspect('equal', adjustable='box')
+
     #pylab.setp(pylab.gca(), 'xlim', [-0.15,0.6])
     labels = plt.getp(plt.gca(), 'xticklabels')
     plt.setp(labels, color='k', fontweight='bold')

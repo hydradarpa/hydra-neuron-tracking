@@ -10,13 +10,11 @@ from numpy import loadtxt
 import _core
 import _plotting
 
-def test(f_config, display = True):
-    model, scene, after_tps = _core.run_ini(f_config)
-    if display:
-        _plotting.displayABC(model, scene, after_tps)
-
-def test_jt(f_config, model, scene, m_info, s_info, display = True):
-    model, scene, after_tps = _core.run_jt(f_config, model, scene, m_info, s_info)
+def test(f_config, model, scene, m_info, s_info, display = True, param = None):
+    if param == None:
+        model, scene, after_tps = _core.run(f_config, model, scene, m_info, s_info)
+    else: 
+        model, scene, after_tps = _core.run_tune(f_config, model, scene, m_info, s_info, param)
     if display:
         _plotting.displayABC(model, scene, after_tps)
     return model, scene, after_tps

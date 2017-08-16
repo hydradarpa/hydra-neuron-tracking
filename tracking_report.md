@@ -1,8 +1,11 @@
 # TERMINOLOGY
 
 Time: times are represented by frame indices
+
 Spot: detected point in a frame represented as (x, y, size, intensity) tuple
+
 Neuron: neuron profile represented as a center of a registration vector cluster
+
 Track: a map from time to a neuron's position at that time
 
 # PROCESS

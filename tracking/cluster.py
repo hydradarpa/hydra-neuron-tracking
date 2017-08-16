@@ -9,6 +9,8 @@ from scipy.cluster.hierarchy import fcluster
 import helpers
 
 # randomly choose fraction of registration vectors for clustering
+# input: array of registration vectors, fraction of registration vectors to sample
+# output: array of sampled registration vectors
 def get_subset(registration, frac):
     count = 0
     subset = []
@@ -23,7 +25,9 @@ def get_subset(registration, frac):
     print 'sampled %d of %d registration vectors for clustering' %(len(subset), count)
     return subset
 
-# hierarchical agglomerative clustering with correlation distance
+# hierarchical agglomerative clustering with correlation distance metric
+# input: array of sampled registration vectors, HAC distance cutoff
+# output: cluster_assignments[registration vector] is the cluster ID that the vector is assigned to
 def correlation_hac(data, cutoff):
     links = linkage(data, 'complete', 'correlation')
     # process rounding errors
@@ -33,6 +37,8 @@ def correlation_hac(data, cutoff):
     return fcluster(links, cutoff, criterion='distance')
 
 # convert map from spots to cluster ID to a map from cluster ID to spots
+# input: cluster_assignments[registration vector] is the cluster ID that the vector is assigned to
+# output: clusters[i] is the set of registration vectors assigned to cluster i
 def reverse_map(clusters):
     reverse = {}
     for i in range(len(clusters)):
@@ -44,6 +50,8 @@ def reverse_map(clusters):
     return reverse
 
 # returns centers (corresponding to neurons) of clusters containing large enough % of clustering subset
+# input: clusters[i] is the set of registration vectors assigned to cluster i, set of registration vectors used for clustering, percent of vectors that a valid cluster needs to contain
+# output: array of cluster centers
 def get_centers(clusters, subset, threshold):
     centers = []
     for cluster in clusters.values():
@@ -56,6 +64,8 @@ def get_centers(clusters, subset, threshold):
     return centers
 
 # assigns each (time, spot) to the closest neuron under a distance threshold
+# input: array of registration vectors, array of cluster centers, distance threshold for registration vector to be assigned to a neuron (cluster center)
+# output: time_assignments[time] is a map from spot index to (neuron index, euclidean distance to assigned cluster center) 
 def assign_neurons(registrations, centers, threshold):
     time_assignments = []
     total = 0
@@ -67,15 +77,18 @@ def assign_neurons(registrations, centers, threshold):
             vec = frame[n]
             dists = list(map(lambda x: helpers.eucl(x, vec), centers))
             total += 1
-            if True: # min(dists) < threshold:
+            if min(dists) < threshold:
                 m = min(dists)
                 assignments[n] = [dists.index(m), m]
                 assigned += 1
         time_assignments.append(assignments)
+        print 'frame %d of %d registered' % (len(time_assignments), len(registrations))
     print '%d of %d spots were assigned to neurons' % (assigned, total)
     return time_assignments
 
-# creates map from (neuron, time) to coordinates that represents the neuron's track
+# processes time assignments to construct neuron tracks
+# input: time_assignments[time] is a map from spot index to (neuron index, euclidean distance to assigned cluster center) 
+# output: neurons[n][time] = location/profile of neuron n at time t
 def process_assignments(time_assignments, num_neurons, full):
     neuron_times = [{} for _ in xrange(num_neurons)]
     for i in range(len(time_assignments)):
@@ -92,4 +105,3 @@ def process_assignments(time_assignments, num_neurons, full):
         neuron_times[i] = {k: full[k][v[0]] for k, v in neuron_times[i].items()}
     print 'paths found for %d neurons' % len(neuron_times)
     return neuron_times
-

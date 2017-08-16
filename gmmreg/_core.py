@@ -36,12 +36,12 @@ def denormalize(x,centroid,scale):
     x = x*scale + centroid
     return x
 
-def L2_distance(model, scene, m_info, s_info, scale):
-    a_surf = scale * m_info[0]
-    a_bright = m_info[1]
+def L2_distance(model, scene, m_info, s_info, size_scale, intensity_scale):
+    a_surf = size_scale * m_info[0]
+    a_bright = intensity_scale * m_info[1]
 
-    b_surf = scale * s_info[0]
-    b_bright = s_info[1]
+    b_surf = size_scale * s_info[0]
+    b_bright = intensity_scale * s_info[1]
 
     peaksA = a_bright/sum(a_bright)
     peaksB = b_bright/sum(b_bright)
@@ -244,7 +244,7 @@ def obj_TPS(dist_func, param, basis, kernel, scene, scale, _lambda): #, init_aff
     grad = grad.reshape(d*n)
     return energy, grad
 
-def obj_L2_TPS(param, basis, kernel, scene, m_info, s_info, scale, _lambda):
+def obj_L2_TPS(param, basis, kernel, scene, m_info, s_info, size_scale, intensity_scale, _lambda):
     #return obj_TPS(L2_distance, param, basis, kernel, scene, scale, alpha, beta)
     nL,n = basis.shape     # (control-pts, landmarks)
     d = scene.shape[1]
@@ -252,7 +252,7 @@ def obj_L2_TPS(param, basis, kernel, scene, m_info, s_info, scale, _lambda):
     tps_param = param[d*(d+1):d*n].reshape(n-d-1,d)
     after_tps = dot(basis,r_[affine_param,tps_param])
     bending = trace(dot(tps_param.T,dot(kernel,tps_param)))
-    distance, grad = L2_distance(after_tps, scene, m_info, s_info, scale)
+    distance, grad = L2_distance(after_tps, scene, m_info, s_info, size_scale, intensity_scale)
     energy = distance + _lambda * bending
     grad = dot(basis.T, grad)
     grad[d+1:n] += 2*_lambda*dot(kernel,tps_param)
@@ -276,12 +276,12 @@ def obj_KC_TPS(param, basis, kernel, scene, scale, alpha, beta):
     return energy, grad
 
 
-def run_multi_level(model,scene,ctrl_pts,m_info,s_info,level,scales,lambdas,iters):
+def run_multi_level(model,scene,ctrl_pts,m_info,s_info,level,size_scales,intensity_scales,lambdas,iters):
     [n,d] = ctrl_pts.shape
     x0 = init_param(n,d)
     [basis, kernel] = prepare_TPS_basis(model, ctrl_pts)
     for i in range(level):
-        x = fmin_l_bfgs_b(obj_L2_TPS, x0, None, args=(basis,kernel,scene,m_info,s_info,scales[i],lambdas[i]),maxfun=iters[i])
+        x = fmin_l_bfgs_b(obj_L2_TPS, x0, None, args=(basis,kernel,scene,m_info,s_info,size_scales[i],intensity_scales[i],lambdas[i]),maxfun=iters[i])
         x0 = x[0]
     after_tps = transform_points(x0,basis)
     return after_tps
@@ -353,7 +353,7 @@ def run(f_config, model, scene, m_info, s_info):
         [scene, c_s, s_s] = normalize(scene)
         [ctrl_pts, c_c, s_c] = normalize(ctrl_pts)
     t1 = time.time()
-    after_tps = run_multi_level(model,scene,ctrl_pts,m_info,s_info,level,scales,lambdas,iters)
+    after_tps = run_multi_level(model,scene,ctrl_pts,m_info,s_info,level,size_scales,intensity_scales,lambdas,iters)
     if normalize_flag==1:
         model = denormalize(model,c_m,s_m)
         scene = denormalize(scene,c_s,s_s)
@@ -373,7 +373,8 @@ def run_tune(f_config, model, scene, m_info, s_info, param):
 
     level = int(c.get(section_option,'level'))
     option_str = c.get(section_option,'sigma')
-    scales = param
+    size_scales = param[0]
+    intensity_scales = param[1]
     option_str = c.get(section_option,'lambda')
     lambdas = [float(s) for s in option_str.split(' ')]
 
@@ -386,7 +387,7 @@ def run_tune(f_config, model, scene, m_info, s_info, param):
         [scene, c_s, s_s] = normalize(scene)
         [ctrl_pts, c_c, s_c] = normalize(ctrl_pts)
     t1 = time.time()
-    after_tps = run_multi_level(model,scene,ctrl_pts,m_info,s_info,level,scales,lambdas,iters)
+    after_tps = run_multi_level(model,scene,ctrl_pts,m_info,s_info,level,size_scales,intensity_scales,lambdas,iters)
     if normalize_flag==1:
         model = denormalize(model,c_m,s_m)
         scene = denormalize(scene,c_s,s_s)

@@ -9,7 +9,8 @@ import numpy as np
 import glob
 import cv2
 
-# plots specified frame
+# plots detected points in specified frame
+# input: array of video frames, full spot structure, frame index, resolution, optional save path
 def plot_frame(vid, full, frame, res, savepath=None):
     cp = copy.copy(vid[frame])
     for neuron in full[frame]:
@@ -21,6 +22,7 @@ def plot_frame(vid, full, frame, res, savepath=None):
         plt.savefig(savepath, dpi=800)
     
 # returns copy of video with overlay for path of neuron n
+# input: array of video frames, neuron id to track, neuron track structure, resolution 
 def track_vid(vid, n, neurons, res):
     tracked = []
     for i in range(len(vid)):
@@ -33,11 +35,36 @@ def track_vid(vid, n, neurons, res):
         tracked.append(cp)
     return tracked
 
+# returns copy of video with overlay for all neuron paths tracked by neuron index
+# input: array of video frames, neuron track structure, resolution
+def track_complete(vid, neurons, res):
+    tracked = []
+    for i in range(len(vid)):
+        frame = vid[i]
+        cp = copy.copy(frame)
+        for n in range(len(neurons)):
+            neuron = neurons[n]
+            if i in neuron.keys():
+                x = res * int(round(neuron[i][0]))
+                y = res * int(round(neuron[i][1]))
+
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                text = str(n)
+
+                textsize = cv2.getTextSize(text, font, 1, 2)[0]
+                textX = x - textsize[0] / 2
+                textY = y + textsize[1] / 2
+                cv2.putText(cp, text, (textX, textY ), font, 1, int(np.amax(cp)), 2)
+        tracked.append(cp)
+        print "%d tracked" %i
+    return tracked
+
 # saves array of frames as video
+# input: array of tracked video frames, save folder path
 def save_vid(vid, folder):
     for i in xrange(len(vid)):
         plt.imshow(vid[i], cmap='gray')
-        plt.savefig(folder + "/file%02d.png" % i, dpi=1200)
+        plt.savefig(folder + "/file%02d.png" % i, dpi=400)
     os.chdir(folder)
     subprocess.call([
         'ffmpeg', '-framerate', '8', '-i', 'file%02d.png', '-r', '30', '-pix_fmt', 'yuv420p',
@@ -47,59 +74,15 @@ def save_vid(vid, folder):
         os.remove(file_name)
     os.chdir('..')
 
-def plot_luminance(vid):
-    #centered = vid - np.min(vid)
-    #stand = centered / float(np.max(centered))
-    scaled = vid / float(np.max(scaled))
-
-    lum = []
-    for frame in scaled:
-        c = 0
-        for i in range(len(frame)):
-            for j in range(len(frame[0])):
-                c += frame[i][j]
-        lum.append(c)
-    rel = lum - np.min(lum)
-    
-    i = range(len(rel))
-    plt.xlabel('time frame')
-    plt.ylabel('relative intensity')
-    plt.scatter(i, rel)
-
-# average luminance per neuron
-def plot_avg_luminance(vid):
-    centered = vid - np.min(vid)
-    stand = centered / float(np.max(centered))
-    
-    lum = []
-    for frame in stand:
-        c = 0
-        for i in range(len(frame)):
-            for j in range(len(frame[0])):
-                c += frame[i][j]
-        lum.append(c)
-    rel = lum - np.min(lum)
-    
-    i = range(len(rel))
-    plt.xlabel('time frame')
-    plt.ylabel('relative intensity')
-    plt.scatter(i, rel)
-
-# neuron is neurons[i]
-def plot_luminance_neuron(vid, neuron):
-    vals = []
-    for time in range(len(vid)):
-        frame = vid[time]
-        if time not in neuron:
-            vals.append(0)
-            continue
-        x = int(neuron[time][0])
-        y = int(neuron[time][1])
-        vals.append(frame[x][y])
-    vals = np.asarray(vals)
-    plt.scatter(range(len(vals)), vals)
-    plt.ylim(np.min(vals[np.nonzero(vals)]) - 50, np.max(vals[np.nonzero(vals)]) + 50)
-
-def plot_count(full):
-    counts = list(map(lambda x: len(x), full))
-    plt.scatter(range(len(counts)), counts)
+# plot average neuron intensity across video
+# input: full spots structure
+def plot_avg_intensity(full):
+    total_intensity = []
+    for frame in full:
+        tot = 0.0
+        count = 0
+        for spot in frame:
+            count += 1
+            tot += spot[4]
+        total_intensity.append(tot/count)    
+    plt.scatter(range(100), total_intensity)

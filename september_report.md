@@ -12,16 +12,16 @@ Because the registration vectors are simply clustered to obtain centers that rep
 
 [This video](https://github.com/hydradarpa/hydra-neuron-tracking/blob/master/results/videos/overlay_tracks_september.mp4) displays all detected spots as diamonds and displays all tracks as circles to show how the tracks follow the neurons and account for gaps in detections. The tracks in the video are obtained with a clustering cutoff of 0.8, soft registration, and closest-point interpolation. 
 
+The graph below shows that the soft registration does not produce as many clusters holding the clustering distance constant, but more clusters may be obtained by lowering the clustering distance again for soft registration vectors. The blue bars represent consistent clusters, while the red ones represent inconsistent ones. As mentioned in the future steps, we will work on finding the tradeoff between getting more tracks and maintaining high track accuracy to tune this clustering distance more. 
 ![length_distribution_comparison](https://github.com/hydradarpa/hydra-neuron-tracking/blob/master/results/length_distribution_comparison.png "Length Distribution Comparison")
 
-The graph above shows that the soft registration does not produce as many clusters holding the clustering distance constant, but more clusters may be obtained by lowering the clustering distance again for soft registration vectors. The blue bars represent consistent clusters, while the red ones represent inconsistent ones. As mentioned in the future steps, we will work on finding the tradeoff between getting more tracks and maintaining high track accuracy to tune this clustering distance more. 
-![frame_assignment_comparison](https://github.com/hydradarpa/hydra-neuron-tracking/blob/master/results/track_count_comparison.png "Track Count Comparison")
-
-The graph above shows the distributions of track lengths; tracks obtained from soft registration have a more bimodal distribution for length than those obtained from hard registration. The average consistent soft registration track had length 77, while the average consistent hard registration track had length 70. 
+The graph below shows the number of spots assigned to a neuron at each frame (blue) compared to the total number of detections at each frame. For hard registration this spot count peaks at frame 50 before falling off, while the soft registration count stays high after rapidly rising around frame 50.
 
 ![frame_assignment_comparison](https://github.com/hydradarpa/hydra-neuron-tracking/blob/master/results/frame_assignments_comparison.png "Frame Assignment Comparison")
 
-The graph above shows the number of spots assigned to a neuron at each frame (blue) compared to the total number of detections at each frame. For hard registration this spot count peaks at frame 50 before falling off, while the soft registration count stays high after rapidly rising around frame 50.
+The graph below shows the distributions of track lengths; tracks obtained from soft registration have a more bimodal distribution for length than those obtained from hard registration. The average consistent soft registration track had length 77, while the average consistent hard registration track had length 70. 
+
+![track_count_comparison](https://github.com/hydradarpa/hydra-neuron-tracking/blob/master/results/track_count_comparison.png "Track Count Comparison")
 
 # CLOSEST POINT INTERPOLATION
 

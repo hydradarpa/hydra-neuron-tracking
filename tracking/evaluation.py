@@ -59,6 +59,27 @@ def track_complete(vid, neurons, res):
         print "%d tracked" %i
     return tracked
 
+# returns copy of video with overlay for all neuron paths as open circles and all spots as points
+# input: array of video frames, neuron track structure, resolution
+def track_compare(vid, neurons, full, res):
+    tracked = []
+    for i in range(len(vid)):
+        frame = vid[i]
+        cp = copy.copy(frame)
+        for n in range(len(neurons)):
+            neuron = neurons[n]
+            if i in neuron.keys():
+                x = res * int(round(neuron[i][0]))
+                y = res * int(round(neuron[i][1]))
+                cv2.circle(cp, (x, y), 8, int(np.amax(cp)), 1)
+        for spot in full[i]:
+            x = res * int(round(spot[0]))
+            y = res * int(round(spot[1]))
+            cv2.circle(cp, (x, y), 2, int(np.amax(cp)), 3)
+        tracked.append(cp)
+        print "%d tracked" %i
+    return tracked
+
 # saves array of frames as video
 # input: array of tracked video frames, save folder path
 def save_vid(vid, folder):

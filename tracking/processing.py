@@ -40,6 +40,23 @@ def reverse_correction(neurons, correction_map):
                 corrected_map[n][time] = new_res
     return corrected_map
 
+def reverse_full_correction(full, correction_map):
+    corrected_map = [[] for _ in xrange(len(full))]
+    for t in range(len(full)):
+        frame = full[t]
+        for spot in frame:
+            new_res = copy.copy(spot)
+            
+            dists = list(map(lambda x: helpers.eucl(x, (new_res[0], new_res[1])), correction_map[t].keys()))
+            
+            if min(dists) < 2:
+                index = dists.index(min(dists))
+                match = correction_map[t].keys()[index]
+                new_res[0] = correction_map[t][match][0]
+                new_res[1] = correction_map[t][match][1]
+                corrected_map[t].append(new_res)
+    return corrected_map
+
 # processes time assignments to construct neuron tracks
 # input: time_assignments[time] is a map from spot index to (neuron index, euclidean distance to assigned cluster center) 
 # output: neurons[n][time] = (location/profile of neuron n at time t, distance to cluster center)

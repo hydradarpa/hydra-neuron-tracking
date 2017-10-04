@@ -65,6 +65,26 @@ def get_registration(full, ref_indices, threshold):
     print 'got %d sufficiently close matches out of %d total' % (matched, total)
     return registrations
 
+def get_soft_registration(full, ref_indices):
+    registrations = []
+    matched = 0
+    total = 0
+    for frame in full:
+        vec = [[] for _ in xrange(len(frame))]
+        for i in ref_indices:
+            ref = full[i]
+            mapping = affine_registration(Y=frame[:, 0:2], X=ref[:, 0:2])
+            mapping.register(None)
+            for spot in range(len(mapping.P)):
+                total += 1
+                match = mapping.P[spot] # match is (assignment index, distance)
+                vec[spot].extend(match) # concatenate assignment vectors over all references
+        registrations.append(vec)
+        print 'frame %d of %d registered' % (len(registrations), len(full))
+    print 'each representation vector has length %d' % len(registrations[0][0])
+    print 'got %d sufficiently close matches out of %d total' % (matched, total)
+    return registrations
+
 # assigns each frame spot to closest neuron in reference set based on euclidean distance
 # input: array of frame spots, array of reference spots
 # output: mappings[index of neuron in frame set] is (index of corresponding neuron in reference set, euclidean distance of transformed model spot to scene spot)

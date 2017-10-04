@@ -93,7 +93,7 @@ def process_assignments(time_assignments, num_neurons, full):
     neuron_times = [{} for _ in xrange(num_neurons)]
     for i in range(len(time_assignments)):
         frame = time_assignments[i]
-        for j in range(len(frame)):
+        for j in frame.keys():
             # reverse a mapping from spot given by time_assignments[time][n] => (neuron, time)
             match = frame[j]
             neuron = match[0]

@@ -43,7 +43,7 @@ def write_neuron_assignments(neurons, path, res, position_only = False):
                 if position_only:
                     writer.writerow([i, j, res * neurons[i][j][0], res * neurons[i][j][1]])
                 else:
-                    writer.writerow([i, j, res * neurons[i][j][0], res * neurons[i][j][1], neurons[i][j][2], neurons[i][j][3], neurons[i][j][4]])
+                    writer.writerow([i, j, res * neurons[i][j][0], res * neurons[i][j][1], neurons[i][j][2], neurons[i][j][3]])
 
 # reads in csv file as neuron assignment structure
 # input: csv neuron assignment read path
@@ -56,6 +56,6 @@ def load_neuron_assignments(path):
         time_map = {}
         track = df[df[df.columns[0]] == i]
         for index, row in track.iterrows():
-            time_map[int(row[1])] = np.asarray([row[2], row[3], row[4], row[5], row[6]])
+            time_map[int(row[1])] = np.asarray([row[2], row[3], row[4], row[5]])
         neurons.append(time_map)
     return neurons
